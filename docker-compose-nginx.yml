@@ -1,0 +1,16 @@
+version: '3.7'
+
+services:
+
+    nginx:
+        container_name: nginx
+        environment:
+            NGINX_PORT: 81
+            AUTH_URL: app:8080
+        image: javaforever/nginx:latest
+        restart: always
+    app:
+        image: mysql:5.7
+        environment:
+           MYSQL_ROOT_PASSWORD: password
+        restart: always

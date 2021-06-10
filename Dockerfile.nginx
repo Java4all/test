@@ -1,0 +1,32 @@
+FROM nginx:1.21.0-alpine-perl AS final
+RUN apk add --no-cache nginx-mod-http-perl gettext
+WORKDIR /usr/share/nginx/html
+COPY index.html .
+COPY nginx-default.conf.template /etc/nginx/templates/nginx.conf.template
+COPY nginx.conf /etc/nginx/nginx.conf
+#COPY certs/ /etc/nginx/ssl
+# Install OpenSSH and set the password for root to "Docker!". In this example, "apk add" is the install instruction for an Alpine Linux-based image.
+RUN apk add openssh \
+     && echo "root:Docker!" | chpasswd 
+
+# Copy the sshd_config file to the /etc/ssh/ directory
+COPY sshd_config /etc/ssh/
+
+# Open port 2222 for SSH access
+EXPOSE 2222 80
+
+# Generate keys for sshd
+RUN ssh-keygen -f /etc/ssh/ssh_host_rsa_key -N '' -t rsa
+RUN ssh-keygen -f /etc/ssh/ssh_host_dsa_key -N '' -t dsa
+RUN ssh-keygen -f /etc/ssh/ssh_host_ecdsa_key -N '' -t dsa
+RUN ssh-keygen -f /etc/ssh/ssh_host_ed25519_key -N '' -t dsa
+
+#COPY startup.sh /docker-entrypoint.d/40-startup-sshd.sh
+#RUN chmod 755 /docker-entrypoint.d/40-startup-sshd.sh
+
+COPY docker-entrypoint.sh.nginx /docker-entrypoint.sh
+
+#RUN chmod 755 /docker-entrypoint.sh
+#ENTRYPOINT ["/docker-entrypoint.sh"]
+#CMD ["nginx", "-g", "daemon off;"]
+
